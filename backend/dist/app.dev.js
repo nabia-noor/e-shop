@@ -4,47 +4,65 @@ var express = require("express");
 
 var ErrorHandler = require("./middleware/error");
 
+var app = express();
+
 var cookieParser = require("cookie-parser");
 
 var bodyParser = require("body-parser");
 
 var cors = require("cors");
 
-var cloudinary = require("cloudinary").v2;
-
-var app = express(); // Load env variables early
+app.use(cors({
+  origin: ["https://localhost:3000"],
+  credentials: true
+}));
+app.use(express.json());
+app.use(cookieParser());
+app.use("/test", function (req, res) {
+  res.send("Hello world!");
+});
+app.use(bodyParser.urlencoded({
+  extended: true,
+  limit: "50mb"
+})); // config
 
 if (process.env.NODE_ENV !== "PRODUCTION") {
   require("dotenv").config({
-    path: "backend/config/.env"
+    path: "config/.env"
   });
-} // Cloudinary config
+} // import routes
 
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-app.use(express.json());
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({
-  extended: true
-})); // CORS
+var user = require("./controller/user");
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true
-})); // Static file serving
+var shop = require("./controller/shop");
 
-app.use("/", express["static"]("uploads")); // Import routes
+var product = require("./controller/product");
 
-var user = require("./controller/user"); // const paymentRoute = require("./routes/payment"); // payment route import kiya
-// Use routes
+var event = require("./controller/event");
 
+var coupon = require("./controller/coupounCode");
 
-app.use("/api/v2/user", user); // app.use("/payment", paymentRoute); 
-// Error handler
+var payment = require("./controller/payment");
+
+var order = require("./controller/order");
+
+var conversation = require("./controller/conversation");
+
+var message = require("./controller/message");
+
+var withdraw = require("./controller/withdraw");
+
+app.use("/api/v2/user", user);
+app.use("/api/v2/conversation", conversation);
+app.use("/api/v2/message", message);
+app.use("/api/v2/order", order);
+app.use("/api/v2/shop", shop);
+app.use("/api/v2/product", product);
+app.use("/api/v2/event", event);
+app.use("/api/v2/coupon", coupon);
+app.use("/api/v2/payment", payment);
+app.use("/api/v2/withdraw", withdraw); // it's for ErrorHandling
 
 app.use(ErrorHandler);
 module.exports = app;
